@@ -1,0 +1,22 @@
+# get dolly dataset from huggingface into a pandas dataframe
+import pandas as pd
+from datasets import load_dataset
+dolly = load_dataset("databricks/databricks-dolly-15k")
+dolly_df = pd.DataFrame(dolly["train"])
+
+# make test suite from a question-answering subset of the data
+dolly_df_sample = dolly_df[dolly_df["category"]=="open_qa"].sample(25, random_state=278487)
+dolly_suite = TestSuite(
+    "suite_from_huggingface_dolly", 
+    "bertscore", 
+    reference_data=dolly_df_sample,
+    input_column="instruction",
+    reference_column="response"
+)
+
+# run test suite on gpt-3.5-turbo generated answers to the questions
+from langchain.chat_models import ChatOpenAI
+gpt35 = ChatOpenAI()
+dolly_suite.run(
+    "gpt-3.5", 
+    candidate_output_list=[gpt35.predict(x) for x in dolly_df_sample.instruction])
