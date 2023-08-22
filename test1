@@ -1,0 +1,23 @@
+from arthur_bench.run.testsuite import TestSuite
+suite = TestSuite(
+    "bench_quickstart", 
+    "exact_match",
+    input_text_list=["What year was FDR elected?", "What is the opposite of down?"], 
+    reference_output_list=["1932", "up"]
+)
+suite.run('quickstart_run', candidate_output_list=["1932", "up is the opposite of down"])
+from langchain.chat_models import ChatOpenAI
+gpt35 = ChatOpenAI()
+gpt4 = ChatOpenAI(model_name="gpt-4")
+
+inputs = ["What year was FDR elected?", "What is the opposite of down?"]
+baseline_outputs = [gpt4.predict(x) for x in inputs]
+candidate_outputs = [gpt35.predict(x) for x in inputs]
+
+suite = TestSuite(
+    "bench_llm_quickstart", 
+    "exact_match",
+    input_text_list=inputs, 
+    reference_output_list=baseline_outputs
+)
+suite.run('quickstart_llm_run', candidate_output_list=candidate_outputs)
